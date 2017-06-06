@@ -1,7 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"encoding/binary"
+)
 
-func main(){
-	fmt.Println("doot doot")
+var f *os.File
+
+func main() {
+	var rofl_header roflHeader
+
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+
+	binary.Read(f, binary.LittleEndian, &rofl_header)
+
+	f.Close()
 }

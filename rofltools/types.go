@@ -1,4 +1,5 @@
 package rofltools
+
 /*
 	Notes: .rofl files do not contain in-game chat. Probably means that chat messages are generated/carried by something else.
 	This means we can't analyze flame. Oh well.
@@ -62,6 +63,6 @@ func newPayloadHeader() *payloadHeader {
 	return &payloadHeader{}
 }
 
-func newChunkHeader() *chunkHeader{
+func newChunkHeader() *chunkHeader {
 	return &chunkHeader{}
 }

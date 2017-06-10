@@ -13,12 +13,11 @@ type roflHeader struct {
 	MetaOffset		uint32	/* should be 0x120 */
 	MetaLength		uint32
 	PayloadHeaderOffset	uint32
-	PayloadHeaderLength	uint32
-	PayloadOffset		uint32
+	PayloadHeaderLength	uint32  /* should be 0x42 */
+	PayloadListOffset	uint32
 }
 
-/* metadata header */
-type metaHeader struct {
+type payloadHeader struct {
 	GameID			uint64
 	GameLength		uint32	/* ms */
 	KeyframeCount		uint32
@@ -31,7 +30,7 @@ type metaHeader struct {
 }
 
 /* list of entries for chunks and keyframes */
-type payloadHeader struct {
+type payloadEntry struct {
 	ID	uint32
 	Type	uint8	/* 1 for chunk, 2 for keyframe */
 	Length	uint32

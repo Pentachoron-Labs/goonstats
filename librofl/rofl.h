@@ -10,7 +10,7 @@
 #pragma pack(1)
 
 typedef struct {
-    uint8_t     magic[6];           /* ROFL\0\0 */
+    uint8_t     magic[6];           /* RIOT\0\0 */
     uint8_t     signature[256];
     uint16_t    file_header_length; /* should be 288 */
     uint32_t    file_length;

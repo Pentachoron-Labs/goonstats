@@ -13,6 +13,7 @@ AC_TYPE_UINT8_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
+AC_CHECK_HEADER(json-c/json.h,,[AC_MSG_ERROR([json-c development files not found. Please install the json-c development package.])])
 
 # build our environment
 AC_CONFIG_HEADERS([config.h])

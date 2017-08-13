@@ -5,6 +5,7 @@
 
 #define STATIC_ASSERT(e) extern void STATIC_ASSERT_(int [(e)?1:-1])
 
+
 /* File structures */
 
 #pragma pack(1)
@@ -36,6 +37,13 @@ typedef struct {
 } rofl_header;
 
 STATIC_ASSERT(sizeof(rofl_header) == 66);
+
+typedef struct {
+    long game_length;
+    int  game_version[4];
+    int  last_chunk_id;
+    int  last_keyframe_id;
+} rofl_metadata;
 
 
 /* Exported functions */

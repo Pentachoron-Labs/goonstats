@@ -1,4 +1,13 @@
 .idea/
 *.rofl
-goonstats
-autom4te.cache/
+*~
+/Makefile
+/autom4te.cache
+/config.log
+/config.status
+/config.h
+/stamp-h1
+librofl/Makefile
+librofl/.deps
+librofl/*.o
+librofl/librofl.a

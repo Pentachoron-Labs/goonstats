@@ -1,5 +1,4 @@
 ## Process this file with automake to produce Makefile.in
-lib_LTLIBRARIES = librofl.la
-librofl_la_SOURCES = parse.c
-librofl_la_LDFLAGS = -version-info 0:0:0
+lib_LIBRARIES = librofl.a
+librofl_a_SOURCES = parse.c
 include_HEADERS = rofl.h

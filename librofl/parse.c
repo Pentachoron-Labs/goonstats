@@ -50,14 +50,26 @@ int rofl_read_header(FILE *f, long offset, rofl_header *header) {
     return 1;
 }
 
+/* Internal representation of the player metadata
+ * (json_object is left unspecified) */
+typedef struct {
+    long game_length;
+    int  game_version[4];
+    int  last_chunk_id;
+    int  last_keyframe_id;
+    int  player_count;
+    json_object *player_metadata[12];
+} rofl_metadata_internal;
+
 /**
  * As above, with the JSON metadata header.
+ * Metadata object must be freed with rofl_free_metadata().
  */
-int rofl_read_metadata_header(FILE *f, long offset, long length) {
-    rofl_metadata metadata = {0};
+int rofl_read_metadata(FILE *f, long offset, long length, rofl_metadata *metadata) {
     char *buffer = malloc(length+1);
     json_object *obj;
     char *stats_json = NULL;
+    int i;
     int ret;
 
     /* Read into the buffer */
@@ -69,6 +81,7 @@ int rofl_read_metadata_header(FILE *f, long offset, long length) {
     /* Parse */
     obj = json_tokener_parse(buffer);
     if (!obj) {
+        debug("fatal: couldn't parse metadata\n");
         free(buffer);
         return 0;
     }
@@ -77,17 +90,17 @@ int rofl_read_metadata_header(FILE *f, long offset, long length) {
         /* char *key */
         /* json_object *val */
         if (!strcmp(key, "gameLength"))
-            metadata.game_length = json_object_get_int(val);
+            metadata->game_length = json_object_get_int(val);
         else if (!strcmp(key, "gameVersion"))
             sscanf(json_object_get_string(val), "%d.%d.%d.%d",
-                metadata.game_version[0],
-                metadata.game_version[1],
-                metadata.game_version[2],
-                metadata.game_version[3]);
+                &metadata->game_version[0],
+                &metadata->game_version[1],
+                &metadata->game_version[2],
+                &metadata->game_version[3]);
         else if (!strcmp(key, "lastGameChunkId"))
-            metadata.last_chunk_id = json_object_get_int(val);
+            metadata->last_chunk_id = json_object_get_int(val);
         else if (!strcmp(key, "lastKeyFrameId"))
-            metadata.last_keyframe_id = json_object_get_int(val);
+            metadata->last_keyframe_id = json_object_get_int(val);
         else if (!strcmp(key, "statsJson"))
             stats_json = strdup(json_object_get_string(val));
         else
@@ -96,12 +109,13 @@ int rofl_read_metadata_header(FILE *f, long offset, long length) {
     }
 
     /* check that we have all of the elements */
-    if (metadata.game_length == 0)
+    if (metadata->game_length == 0)
         debug("missing or zero \"gameLength\" member\n");
-    /* fixme: check version */
-    if (metadata.last_chunk_id == 0)
+    if (metadata->game_version[0] == 0)
+        debug("missing or zero \"gameVersion\" member\n");
+    if (metadata->last_chunk_id == 0)
         debug("missing or zero \"lastGameChunkId\" member\n");
-    if (metadata.last_keyframe_id == 0)
+    if (metadata->last_keyframe_id == 0)
         debug("missing or zero \"lastKeyFrameId\" member\n");
     if (!stats_json) {
         debug("fatal: missing \"statsJson\" member\n");
@@ -114,14 +128,55 @@ int rofl_read_metadata_header(FILE *f, long offset, long length) {
     /* parse the statsJson */
     obj = json_tokener_parse(stats_json);
     if (!obj) {
+        debug("fatal: couldn't parse \"statsJson\" member\n");
         free(buffer);
         return 0;
     }
 
-    
+    /* It's likely that the list will change, and it's probably easier
+     * to return it in the form of an (opaque) string map anyway. */
+    metadata->player_count = json_object_array_length(obj);
+    for (i = 0; i < metadata->player_count; i++) {
+        metadata->player_metadata[i] = (void *) json_object_array_get_idx(obj, i);
+    }
 
 end:
     json_object_put(obj);   /* free */
     free(buffer);
     return ret;
+}
+
+/**
+ * Returns the string value of a metadata key, or NULL if it does not exist.
+ * Returned value must be freed by the caller with free().
+ */
+char *rofl_metadata_get_string(void *player, const char *key) {
+    json_object *val;
+    if (!json_object_object_get_ex(player, key, &val)) /* not ref'd */
+        return NULL;
+
+    return strdup(json_object_get_string(val));
+}
+
+/**
+ * Returns the integer value of a metadata key, or -1 if it does not exist.
+ */
+int rofl_metadata_get_integer(void *player, const char *key) {
+    json_object *val;
+    if (!json_object_object_get_ex(player, key, &val)) /* not ref'd */
+        return -1;
+
+    return json_object_get_int(val);
+}
+
+/**
+ * Free the metadata read with rofl_read_metadata().
+ */
+void rofl_free_metadata(rofl_metadata *metadata) {
+    int i;
+
+    /* free the references to the players */
+    for (i = 0; i < metadata->player_count; i++) {
+        json_object_put(metadata->player_metadata[i]);
+    }
 }

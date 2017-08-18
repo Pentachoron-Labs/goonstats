@@ -43,11 +43,18 @@ typedef struct {
     int  game_version[4];
     int  last_chunk_id;
     int  last_keyframe_id;
+    int  player_count;
+    void *player_metadata[12];
 } rofl_metadata;
 
 
 /* Exported functions */
 
 extern int rofl_read_file_header(FILE *, rofl_file_header *);
+extern int rofl_read_header(FILE *, long offset, rofl_header *);
+extern int rofl_read_metadata(FILE *, long offset, long length, rofl_metadata *);
+extern int rofl_metadata_get_integer(void *player, const char *key);
+extern char *rofl_metadata_get_string(void *player, const char *key);
+extern void rofl_free_metadata(rofl_metadata *);
 
 #endif /* __ROFL_H */
